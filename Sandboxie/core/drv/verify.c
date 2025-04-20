@@ -1096,6 +1096,10 @@ CleanupExit:
 
     if(stream)      Stream_Close(stream);
 	Verify_CertInfo.active = 1;
+	Verify_CertInfo.opt_desk = 1;
+	Verify_CertInfo.opt_net = 1;
+	Verify_CertInfo.opt_enc = 1;
+	Verify_CertInfo.opt_sec = 1;
     return 1;
 }
 
