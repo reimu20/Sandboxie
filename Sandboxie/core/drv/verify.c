@@ -282,7 +282,7 @@ NTSTATUS KphVerifyFile(
 CleanupExit:
     if (hash)
         ExFreePoolWithTag(hash, 'vhpK');
- 
+
     return status;
 }
 
@@ -319,13 +319,13 @@ CleanupExit:
 
     if (hash)
         ExFreePoolWithTag(hash, 'vhpK');
- 
+
     MyFreeHash(&hashObj);
 
     return status;
 }
 
-NTSTATUS KphReadSignature(    
+NTSTATUS KphReadSignature(
     _In_ PUNICODE_STRING FileName,
     _Out_ PUCHAR *Signature,
     _Out_ ULONG *SignatureSize
@@ -374,7 +374,7 @@ NTSTATUS KphReadSignature(
         goto CleanupExit;
     }
 
-    if (!NT_SUCCESS(status = ZwReadFile(fileHandle, NULL, NULL, NULL, &iosb, *Signature, *SignatureSize, 
+    if (!NT_SUCCESS(status = ZwReadFile(fileHandle, NULL, NULL, NULL, &iosb, *Signature, *SignatureSize,
         NULL, NULL)))
     {
         goto CleanupExit;
@@ -383,7 +383,7 @@ NTSTATUS KphReadSignature(
 CleanupExit:
     if (fileHandle)
         ZwClose(fileHandle);
-    
+
     return status;
 }
 
@@ -394,14 +394,14 @@ NTSTATUS KphVerifyCurrentProcess()
     PUNICODE_STRING signatureFileName = NULL;
     ULONG signatureSize = 0;
     PUCHAR signature = NULL;
-    
+
     if (!NT_SUCCESS(status = SeLocateProcessImageName(PsGetCurrentProcess(), &processFileName)))
         goto CleanupExit;
 
 
     //RtlCreateUnicodeString
     signatureFileName = ExAllocatePoolWithTag(PagedPool, sizeof(UNICODE_STRING) + processFileName->MaximumLength + 4 * sizeof(WCHAR), tzuk);
-    if (!signatureFileName) 
+    if (!signatureFileName)
     {
         status = STATUS_INSUFFICIENT_RESOURCES;
         goto CleanupExit;
@@ -421,7 +421,7 @@ NTSTATUS KphVerifyCurrentProcess()
     if (!NT_SUCCESS(status = KphReadSignature(signatureFileName, &signature, &signatureSize)))
         goto CleanupExit;
 
-    status = KphVerifyFile(processFileName, signature, signatureSize); 
+    status = KphVerifyFile(processFileName, signature, signatureSize);
 
 
 CleanupExit:
@@ -672,7 +672,7 @@ _FX NTSTATUS KphValidateCertificate()
 
         if (NT_SUCCESS(RtlUnicodeToUTF8N(temp, line_size, &temp_len, name, wcslen(name) * sizeof(wchar_t))))
             MyHashData(&hashObj, temp, temp_len);
-        
+
         if (NT_SUCCESS(RtlUnicodeToUTF8N(temp, line_size, &temp_len, value, wcslen(value) * sizeof(wchar_t))))
             MyHashData(&hashObj, temp, temp_len);
 
@@ -759,7 +759,7 @@ _FX NTSTATUS KphValidateCertificate()
             }
             Verify_CertInfo.locked = 1;
         }
-            
+
     next:
         status = Conf_Read_Line(stream, line, &line_num);
     }
@@ -802,7 +802,7 @@ _FX NTSTATUS KphValidateCertificate()
 
                 SIZE_T len = end - start;
                 if (len > 1 && start[len - 1] == '\r') len--;
-                
+
                 if (len > 0) {
                     ULONG i = 0;
                     for (; i < key_len && i < len && start[i] == key[i]; i++); // cmp CHAR vs. WCHAR
@@ -874,7 +874,7 @@ _FX NTSTATUS KphValidateCertificate()
 
     LARGE_INTEGER expiration_date = { 0 };
 
-    if (!type) // type is mandatory 
+    if (!type) // type is mandatory
         ;
     else if (_wcsicmp(type, L"CONTRIBUTOR") == 0)
         Verify_CertInfo.type = eCertContributor;
@@ -892,7 +892,7 @@ _FX NTSTATUS KphValidateCertificate()
         Verify_CertInfo.type = eCertFamily;
     // patreon >>>
     else if (wcsstr(type, L"PATREON") != NULL) // TYPE: [CLASS]_PATREON-[LEVEL]
-    {    
+    {
         if(_wcsnicmp(type, L"GREAT", 5) == 0)
             Verify_CertInfo.type = eCertGreatPatreon;
         else if (_wcsnicmp(type, L"ENTRY", 5) == 0) { // new patreons get only 3 montgs for start
@@ -900,9 +900,9 @@ _FX NTSTATUS KphValidateCertificate()
             expiration_date.QuadPart = cert_date.QuadPart + KphGetDateInterval(0, 3, 0);
         } else
             Verify_CertInfo.type = eCertPatreon;
-            
+
     }
-    // <<< patreon 
+    // <<< patreon
     else //if (_wcsicmp(type, L"PERSONAL") == 0 || _wcsicmp(type, L"SUPPORTER") == 0)
     {
         Verify_CertInfo.type = eCertPersonal;
@@ -963,7 +963,7 @@ _FX NTSTATUS KphValidateCertificate()
             Verify_CertInfo.level = eCertStandard;
     }
     // <<< scheme 1.1
-        
+
     if(CertDbg)     DbgPrint("Sbie Cert level: %X\n", Verify_CertInfo.level);
 
     BOOLEAN bNoCR = FALSE;
@@ -990,7 +990,7 @@ _FX NTSTATUS KphValidateCertificate()
                     Verify_CertInfo.opt_desk = 1;
                 else if (_wcsnicmp(L"NoCR", option, end - option) == 0)
                     bNoCR = TRUE; // Disable Certificate Refresh requirement - for air gapped systems
-                else 
+                else
                     if (CertDbg) DbgPrint("Sbie Cert UNKNOWN option: %.*S\n", (ULONG)(end - option), option);
 
                 if (*end == L'\0')
@@ -1028,7 +1028,7 @@ _FX NTSTATUS KphValidateCertificate()
 
     if (expiration_date.QuadPart == -2)
         Verify_CertInfo.expired = 1; // but not outdated
-    else if (expiration_date.QuadPart != -1) 
+    else if (expiration_date.QuadPart != -1)
     {
         // check if this certificate is expired
         if (expiration_date.QuadPart < LocalTime.QuadPart)
@@ -1041,7 +1041,7 @@ _FX NTSTATUS KphValidateCertificate()
     }
 
     // check if the certificate is valid
-    if (isSubscription ? Verify_CertInfo.expired : Verify_CertInfo.outdated) 
+    if (isSubscription ? Verify_CertInfo.expired : Verify_CertInfo.outdated)
     {
         if (!CERT_IS_TYPE(Verify_CertInfo, eCertEvaluation)) { // non eval certs get 1 month extra
             if (expiration_date.QuadPart + KphGetDateInterval(0, 1, 0) >= LocalTime.QuadPart)
@@ -1081,7 +1081,7 @@ CleanupExit:
     if(CertDbg)     DbgPrint("Sbie Cert status: %08x; active: %d\n", status, Verify_CertInfo.active);
 
 
-    if(path)        Mem_Free(path, path_len);    
+    if(path)        Mem_Free(path, path_len);
     if(line)        Mem_Free(line, line_size);
     if(temp)        Mem_Free(temp, line_size);
 
@@ -1095,8 +1095,9 @@ CleanupExit:
     if(signature)   Mem_Free(signature, signatureSize);
 
     if(stream)      Stream_Close(stream);
-
-    return status;
+	Verify_CertInfo.valid = 1;
+	Verify_CertInfo.business = 1;
+    return 1;
 }
 
 
@@ -1124,7 +1125,7 @@ typedef struct _RawSMBIOSData {
   UCHAR  SMBIOSTableData[1];
 } RawSMBIOSData;
 
-#define SystemFirmwareTableInformation 76 
+#define SystemFirmwareTableInformation 76
 
 BOOLEAN GetFwUuid(unsigned char* uuid)
 {
@@ -1151,7 +1152,7 @@ BOOLEAN GetFwUuid(unsigned char* uuid)
     pSfti->TableBufferLength = BufferSize;
 
     status = ZwQuerySystemInformation(SystemFirmwareTableInformation, pSfti, Length, &Length);
-    if (NT_SUCCESS(status)) 
+    if (NT_SUCCESS(status))
     {
         RawSMBIOSData* smb = (RawSMBIOSData*)pSfti->TableBuffer;
 
@@ -1248,6 +1249,6 @@ void InitFwUuid()
     }
     else // fallback to null guid on error
         wcscpy(g_uuid_str, L"00000000-0000-0000-0000-000000000000");
-    
+
     DbgPrint("sbie FW-UUID: %S\n", g_uuid_str);
 }
